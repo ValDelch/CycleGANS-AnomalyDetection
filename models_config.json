@@ -1,0 +1,22 @@
+{
+    "cgan256":{
+        "data_loader": "ImageDatasetPaired",
+        "always_RGB": false,
+        "max_image_size": 256
+    },
+    "cgan64": {
+        "data_loader": "ImageDatasetPaired",
+        "always_RGB": false,
+        "max_image_size": 64
+    },
+    "padim": {
+        "data_loader": "ImageDataset",
+        "always_RGB": true,
+        "max_image_size": 256
+    },
+    "patchcore": {
+        "data_loader": "ImageDatasetPaired",
+        "always_RGB": true,
+        "max_image_size": 256
+    }
+}

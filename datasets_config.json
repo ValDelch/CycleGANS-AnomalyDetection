@@ -1,0 +1,9 @@
+{
+    "pcam": {
+        "image_size": 96,
+        "RGB": true,
+        "hard_aug": false,
+        "epochs": 50,
+        "batch_size": 48
+    }
+}
