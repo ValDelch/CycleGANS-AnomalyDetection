@@ -5,14 +5,13 @@ from torch import nn
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 
-import glob
 import os
 from PIL import Image
 import json
 
+valid_extensions = ["png", "tif", "jpg", "jpeg"]
 
-
-class RandomChoice(torch.nn.Module):
+class RandomChoice(nn.Module):
     def __init__(self, transforms):
         super().__init__()
         self.transforms = transforms
@@ -31,6 +30,7 @@ class ImageDataset(Dataset):
         ]
     """
     def __init__(self, files=[], transform=None, color_mode="RGB"):
+        self.files = files
         self.transform = transform
         self.color_mode = color_mode
 
@@ -51,38 +51,17 @@ class ImageDatasetPaired(Dataset):
         ]
     """
     def __init__(self, files=[()], transform=None, color_mode="RGB"):
+        self.files = files
         self.transform = transform
         self.color_mode = color_mode
 
-        if len(self.files_A) >= len(self.files_B):
-            # Files in files_B should be taken at least once
-            self.cache = self.files_B.copy()
-        else:
-            self.cache = self.files_A.copy()
-
     def __getitem__(self, index):
-        if len(self.files_A) >= len(self.files_B):
-            if self.cache:
-                item_B = self.transform(Image.open(self.cache.pop(random.randint(0, len(self.cache) - 1))).convert(self.color_mode))
-            else:
-                item_B = self.transform(Image.open(self.files_B[random.randint(0, len(self.files_B) - 1)]).convert(self.color_mode))
-
-            item_A = self.transform(Image.open(self.files_A[index % len(self.files_A)]).convert(self.color_mode))
-
-        else:
-            if self.cache:
-                item_A = self.transform(Image.open(self.cache.pop(random.randint(0, len(self.cache) - 1))).convert(self.color_mode))
-            else:
-                item_A = self.transform(Image.open(self.files_A[random.randint(0, len(self.files_A) - 1)]).convert(self.color_mode))
-
-            item_B = self.transform(Image.open(self.files_B[index % len(self.files_B)]).convert(self.color_mode))
-
-        return {"A": item_A, "B": item_B}
+        normal_image = self.transform(Image.open(self.files[index][0]).convert(self.color_mode))
+        abnormal_image = self.transform(Image.open(self.files[index][1]).convert(self.color_mode))
+        return {"normal": normal_image, "abnormal": abnormal_image}
 
     def __len__(self):
-        return max(len(self.files_A), len(self.files_B))
-    
-
+        return len(self.files)
 
 def return_dataset(name, path, always_RGB, max_image_size, loader):
 
@@ -93,16 +72,51 @@ def return_dataset(name, path, always_RGB, max_image_size, loader):
 
     image_size = min([max_image_size, dataset_config["image_size"]])
 
+    # Generate the splits
+    normal_images = [f for f in os.listdir(os.path.join(path, name, 'normal')) 
+                     if f.split('.')[-1].lower() in valid_extensions]
+    abnormal_images = [f for f in os.listdir(os.path.join(path, name, 'abnormal')) 
+                       if f.split('.')[-1].lower() in valid_extensions]
+    random.shuffle(normal_images)
+    random.shuffle(abnormal_images)
+    test_size = len(abnormal_images) // 2
+    
+    normal_images_test = normal_images[:test_size]
+    abnormal_images_test = abnormal_images[:test_size]
+    normal_images_train = normal_images[test_size:]
+    abnormal_images_train = abnormal_images[test_size:]
+
     if loader == 'ImageDatasetPaired':
         train_dataloader = ImageDatasetPaired
 
-        # Generate the splits
-        normal_images = glob.glob(os.path.join())
+        # Generate the training pairs
+        images_train = []
+        if len(normal_images_train) >= len(abnormal_images_train):
+            # Files in files_B should be taken at least once
+            cache = abnormal_images_train.copy() 
+            for i in range(len(normal_images_train)):
+                if cache:
+                    images_train.append((os.path.join(path, name, 'normal', normal_images_train[i]),
+                                         os.path.join(path, name, 'abnormal', cache.pop(random.randint(0,len(cache)-1)))))
+                else:
+                    images_train.append((os.path.join(path, name, 'normal', normal_images_train[i]),
+                                         os.path.join(path, name, 'abnormal', abnormal_images_train[random.randint(0, len(abnormal_images_train)-1)])))
+        else:
+            cache = normal_images_train.copy()
+            for i in range(len(abnormal_images_train)):
+                if cache:
+                    images_train.append((os.path.join(path, name, 'normal', cache.pop(random.randint(0,len(cache)-1))),
+                                         os.path.join(path, name, 'abnormal', abnormal_images_train[i])))
+                else:
+                    images_train.append((os.path.join(path, name, 'normal', normal_images_train[random.randint(0, len(normal_images_train)-1)]),
+                                         os.path.join(path, name, 'abnormal', abnormal_images_train[i])))
 
     else:
         train_dataloader = ImageDataset
 
-        # Generate the splits
+        # Generate the training split
+        images_train = normal_images_train.copy()
+
     test_dataloader = ImageDataset
 
     if always_RGB or dataset_config["RGB"]:
@@ -131,6 +145,23 @@ def return_dataset(name, path, always_RGB, max_image_size, loader):
             transforms.ToTensor(),
             normalize
         ])
+
+        train_dataset = train_dataloader(
+            files=images_train,
+            transform=train_tf,
+            color_mode=color_mode
+        )
+        test_normal_dataset = test_dataloader(
+            files=normal_images_test,
+            transform=test_tf,
+            color_mode=color_mode
+        )
+        test_abnormal_dataset = test_dataloader(
+            files=abnormal_images_test,
+            transform=test_tf,
+            color_mode=color_mode
+        )
+
     else:
         transform_ori = transforms.Compose([
             transforms.Resize((image_size, image_size), Image.Resampling.BICUBIC),
@@ -188,11 +219,93 @@ def return_dataset(name, path, always_RGB, max_image_size, loader):
             transforms.ToTensor(),
             normalize
         ])
-
         transform_ori_test = transforms.Compose([
             transforms.Resize((image_size, image_size), Image.Resampling.BICUBIC),
             transforms.ToTensor(),
             normalize
         ])
+
+        train_dataset_ori = train_dataloader(
+            files=images_train,
+            transform=transform_ori,
+            color_mode=color_mode
+        )
+        train_dataset_ori_rot90 = train_dataloader(
+            files=images_train,
+            transform=transform_ori_rot90,
+            color_mode=color_mode
+        )
+        train_dataset_ori_rot180 = train_dataloader(
+            files=images_train,
+            transform=transform_ori_rot180,
+            color_mode=color_mode
+        )
+        train_dataset_ori_rot270 = train_dataloader(
+            files=images_train,
+            transform=transform_ori_rot270,
+            color_mode=color_mode
+        )
+        train_dataset_hflip = train_dataloader(
+            files=images_train,
+            transform=transform_hflip,
+            color_mode=color_mode
+        )
+        train_dataset_hflip_rot90 = train_dataloader(
+            files=images_train,
+            transform=transform_hflip_rot90,
+            color_mode=color_mode
+        )
+        train_dataset_hflip_rot180 = train_dataloader(
+            files=images_train,
+            transform=transform_hflip_rot180,
+            color_mode=color_mode
+        )
+        train_dataset_hflip_rot270 = train_dataloader(
+            files=images_train,
+            transform=transform_hflip_rot270,
+            color_mode=color_mode
+        )
+        train_dataset_vflip = train_dataloader(
+            files=images_train,
+            transform=transform_vflip,
+            color_mode=color_mode
+        )
+        train_dataset = torch.utils.data.ConcatDataset([
+            train_dataset_ori,
+            train_dataset_ori_rot90,
+            train_dataset_ori_rot180,
+            train_dataset_ori_rot270,
+            train_dataset_hflip,
+            train_dataset_hflip_rot90,
+            train_dataset_hflip_rot180,
+            train_dataset_hflip_rot270,
+            train_dataset_vflip
+        ])
+        test_normal_dataset = test_dataloader(
+            files=normal_images_test,
+            transform=transform_ori_test,
+            color_mode=color_mode
+        )
+        test_abnormal_dataset = test_dataloader(
+            files=abnormal_images_test,
+            transform=transform_ori_test,
+            color_mode=color_mode
+        )
+
+    train_dataset = torch.utils.data.DataLoader(
+        train_dataset,
+        batch_size=dataset_config["batch_size"],
+        shuffle=True
+    )
+    test_normal_dataset = torch.utils.data.DataLoader(
+        test_normal_dataset,
+        batch_size=dataset_config["batch_size"],
+        shuffle=False
+    )
+    test_abnormal_dataset = torch.utils.data.DataLoader(
+        test_abnormal_dataset,
+        batch_size=dataset_config["batch_size"],
+        shuffle=False
+    )
 
     return (train_dataset, test_normal_dataset, test_abnormal_dataset)
