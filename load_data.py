@@ -63,7 +63,7 @@ class ImageDatasetPaired(Dataset):
     def __len__(self):
         return len(self.files)
 
-def return_dataset(name, path, always_RGB, max_image_size, loader):
+def return_dataset(name, path, always_RGB, max_image_size, loader, id=0):
 
     with open('datasets_config.json', 'r') as json_file:
         dataset_config = json.load(json_file)[name]
@@ -77,8 +77,8 @@ def return_dataset(name, path, always_RGB, max_image_size, loader):
                      if f.split('.')[-1].lower() in valid_extensions]
     abnormal_images = [f for f in os.listdir(os.path.join(path, name, 'abnormal')) 
                        if f.split('.')[-1].lower() in valid_extensions]
-    random.shuffle(normal_images)
-    random.shuffle(abnormal_images)
+    random.Random(id).shuffle(normal_images)
+    random.Random(id).shuffle(abnormal_images)
     test_size = len(abnormal_images) // 2
     
     normal_images_test = normal_images[:test_size]

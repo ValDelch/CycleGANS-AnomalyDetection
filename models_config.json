@@ -15,7 +15,7 @@
         "max_image_size": 256
     },
     "patchcore": {
-        "data_loader": "ImageDatasetPaired",
+        "data_loader": "ImageDataset",
         "always_RGB": true,
         "max_image_size": 256
     }
