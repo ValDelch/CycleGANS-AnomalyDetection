@@ -38,6 +38,7 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
 
     fake_normal_buffer = ReplayBuffer()
     fake_abnormal_buffer = ReplayBuffer()
+    all_time = time.time()
     for epoch in range(dataset_config['epochs']):
 
         # Training
@@ -190,6 +191,7 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
 
         training_log = "Epoch: {} | Loss_D: {:.4f} | Loss_identity: {:.4f} | Loss_GAN: {:.4f} | Loss_cycle: {:.4f} | Time: {:.4f}".format(epoch, record_loss_D, record_loss_identity, record_loss_GAN, record_loss_cycle, time.time() - start_time)
         logfile.write(training_log + "\n")
+    logfile.write("Total training time: {:.4f}".format(time.time() - all_time) + "\n")
     logfile.close()
 
     return training_setup["models"]["netG_abnormal2normal"].copy().to(device)
@@ -212,6 +214,7 @@ def train_patchcore(save_dir, model_name, dataset_name, infer, run_id, train_dat
     embeddings = []
     training_setup["models"]["model"].feature_extractor.eval()
     n = 0
+    all_time = time.time()
     for i, data in enumerate(train_dataloader):
 
         # Get the data
@@ -224,6 +227,7 @@ def train_patchcore(save_dir, model_name, dataset_name, infer, run_id, train_dat
 
     embeddings = torch.vstack(embeddings)
     training_setup["models"]["model"].subsample_embedding(embeddings, 0.1)
+    logfile.write("Total training time: {:.4f}".format(time.time() - all_time) + "\n")
     logfile.close()
 
     return training_setup["models"]["model"].copy().to(device)
@@ -246,6 +250,7 @@ def train_padim(save_dir, model_name, dataset_name, infer, run_id, train_dataloa
     embeddings = []
     training_setup["models"]["model"].feature_extractor.eval()
     n = 0
+    all_time = time.time()
     for i, data in enumerate(train_dataloader):
             
         # Get the data
@@ -258,6 +263,7 @@ def train_padim(save_dir, model_name, dataset_name, infer, run_id, train_dataloa
 
     embeddings = torch.vstack(embeddings)
     training_setup["models"]["model"].gaussian.fit(embeddings)
+    logfile.write("Total training time: {:.4f}".format(time.time() - all_time) + "\n")
     logfile.close()
 
     return training_setup["models"]["model"].copy().to(device)
