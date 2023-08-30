@@ -2,7 +2,7 @@
 Main code used to obtain the results from the paper:
 "Industrial and Medical Anomaly Detection Through Cycle-Consistent Adversarial Networks"
 
-Dataset should all match the followimaps_abnormal structure:
+Dataset should all match the following structure:
 
 data_path
 |
@@ -16,26 +16,27 @@ data_path
 |
 ...
 
-Attention is paid to keep balanced testimaps_abnormal sets, with min([len(normal images), len(abnormal images)]) / 2. images per class.
+Attention is paid to keep balanced testing sets, with min([len(normal images), len(abnormal images)]) / 2. images per class.
 """
 
 import json
 import os
+import numpy as np
 import torch
 from load_data import return_dataset
-from trainimaps_abnormal_setup import return_trainimaps_abnormal_setup
+from training_setup import return_training_setup
 from train import return_trained_model
 from infer import infer
 from metrics import conf_mat, metric_conf, auc_roc_score
 
 import argparse
-parser = argparse.ArgumentParser(description='Trainimaps_abnormal and inference for AD')
+parser = argparse.ArgumentParser(description='Training and inference for AD')
 parser.add_argument('data_path', type=str, help='path to the datasets')
 parser.add_argument('save_dir', type=str, help='directory used to save the results')
-parser.add_argument('model', type=str, help='model to use amomaps_abnormal cgan256|cgan64|ganomaly|patchcore|padim')
-parser.add_argument('dataset', type=str, help='dataset to use amomaps_abnormal pcam|brain|breast|oct|wood|tile|hazelnut|screw')
+parser.add_argument('model', type=str, help='model to use among cgan256|cgan64|ganomaly|patchcore|padim')
+parser.add_argument('dataset', type=str, help='dataset to use among pcam|brain|breast|oct|wood|tile|hazelnut|screw')
 parser.add_argument('run_id', type=int, help='id for the run')
-parser.add_argument('--infer', action='store_true', default=False, help='only perform inference by loadimaps_abnormal weights from save_dir')
+parser.add_argument('--infer', action='store_true', default=False, help='only perform inference by loading weights from save_dir')
 args = parser.parse_args()
 
 with open('./configs/models_config.json', 'r') as json_file:
@@ -53,26 +54,31 @@ data = return_dataset(args.dataset,
                       args.run_id)
 
 """ Instantiate the model """
-trainimaps_abnormal_setup = return_trainimaps_abnormal_setup(args.model, 
+training_setup = return_training_setup(args.model, 
                                        model_config,
                                        dataset_config,
                                        device)
 
-""" Call the trainimaps_abnormal loop """
+""" Call the training loop """
 model = return_trained_model(args.save_dir, 
                              args.model, 
                              args.dataset,
                              args.infer,
                              args.run_id,
                              data[0], 
-                             trainimaps_abnormal_setup, 
+                             training_setup, 
                              model_config,
                              dataset_config, 
                              device)
 
 """ Call the inference loop """
-maps_normal, maps_abnormal = infer(args.model, model, data[1], data[2], device)
+maps_normal, maps_abnormal = infer(args.model, 
+                                   model, 
+                                   data[1], 
+                                   data[2], 
+                                   device)
 
+# Save the maps
 with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'maps_normal.json'), 'w') as json_file:
     json.dump(maps_normal, json_file, indent=4)
 with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'maps_abnormal.json'), 'w') as json_file:
@@ -106,6 +112,7 @@ for metric in maps_normal.keys():
 
     auc_score[metric] = auc_roc_score(maps_normal[metric], maps_abnormal[metric])
 
+# Saving the results
 with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'accuracy.json'), 'w'):
     json.dump(accuracy, json_file, indent=4)
 with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'accuracy_50.json'), 'w'):
