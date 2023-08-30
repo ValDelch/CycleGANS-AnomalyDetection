@@ -9,6 +9,8 @@ def return_trained_model(save_dir, model_name, dataset_name, infer, run_id, trai
     
     if model_name == 'cgan256' or model_name == 'cgan64':
         trainer = train_cgan
+    elif model_name == 'ganomaly':
+        trainer = train_ganomaly
     elif model_name == 'patchcore':
         trainer = train_patchcore
     elif model_name == 'padim':
@@ -18,13 +20,14 @@ def return_trained_model(save_dir, model_name, dataset_name, infer, run_id, trai
 
     return trainer(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device)
 
+
 def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device):
 
     if infer:
         # Load the trained model(s)
         model = training_setup['models']['netG_abnormal2normal'].copy()
         model.load_state_dict(torch.load(os.path.join(save_dir, dataset_name, model_name, str(run_id), "/netG_abnormal2normal.pth")))
-        return model
+        return model.to(device)
     
     # Training
     normal_folder = os.path.join(save_dir, dataset_name, model_name, str(run_id), "normal")
@@ -39,6 +42,10 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
     fake_normal_buffer = ReplayBuffer()
     fake_abnormal_buffer = ReplayBuffer()
     all_time = time.time()
+    training_setup["models"]["netG_normal2abnormal"].train()
+    training_setup["models"]["netG_abnormal2normal"].train()
+    training_setup["models"]["netD_normal"].train()
+    training_setup["models"]["netD_abnormal"].train()
     for epoch in range(dataset_config['epochs']):
 
         # Training
@@ -196,6 +203,84 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
 
     return training_setup["models"]["netG_abnormal2normal"].copy().to(device)
 
+
+def train_ganomaly(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device):
+
+    if infer:
+        model = training_setup['models']['model'].copy()
+        model.load_state_dict(torch.load(os.path.join(save_dir, dataset_name, model_name, str(run_id), "/ganomaly.pth")))
+        return model.to(device)
+
+    # Training
+    normal_folder = os.path.join(save_dir, dataset_name, model_name, str(run_id), "normal")
+    if not os.path.exists(normal_folder):
+        os.makedirs(normal_folder)
+    abnormal_folder = os.path.join(save_dir, dataset_name, model_name, str(run_id), "abnormal")
+    if not os.path.exists(abnormal_folder):
+        os.makedirs(abnormal_folder)
+
+    logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a")
+
+    all_time = time.time()
+    training_setup["models"]["model"].train()
+    for epoch in range(dataset_config['epochs']):
+
+        progress_bar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
+        record_loss_D = 0
+        record_loss_G = 0
+        start_time = time.time()
+        for i, data in progress_bar:
+
+            # Get the data
+            real_images = data['image'].to(device)
+            
+            # ---
+            # Update the discriminator
+            # ---
+            
+            training_setup["optimizers"]["optimizer_D"].zero_grad()
+            
+            padded, fake, latent_i, latent_o = training_setup["models"]["model"](real_images)
+            
+            pred_real, _ = training_setup["models"]["model"].discriminator(padded)
+            pred_fake, _ = training_setup["models"]["model"].discriminator(fake)
+            
+            loss_D = training_setup["losses"]["loss_Discriminator"](pred_real, pred_fake)
+            loss_D.backward()
+            training_setup["optimizers"]["optimizer_D"].step()
+
+            # ---
+            # Update the generator
+            # ---
+            
+            training_setup["optimizers"]["optimizer_G"].zero_grad()
+            
+            padded, fake, latent_i, latent_o = training_setup["models"]["model"](real_images)
+            
+            pred_real, _ = training_setup["models"]["model"].discriminator(padded)
+            pred_fake, _ = training_setup["models"]["model"].discriminator(fake)
+            
+            loss_G = training_setup["losses"]["loss_Generator"](latent_i, latent_o, padded, fake, pred_real, pred_fake)
+            loss_G.backward()
+            training_setup["optimizers"]["optimizer_G"].step()
+
+            record_loss_D += loss_D.item() / len(train_dataloader)
+            record_loss_G += loss_G.item() / len(train_dataloader)
+        
+        # do check pointing
+        torch.save(training_setup["models"]["model"].state_dict(), os.path.join(save_dir, dataset_name, model_name, str(run_id), "ganomaly.pth"))
+
+        training_setup["schedulers"]["lr_scheduler_G"].step()
+        training_setup["schedulers"]["lr_scheduler_D"].step()
+
+        training_log = "Epoch: {} | Loss_D: {:.4f} | Loss_G: {:.4f} | Time: {:.4f}".format(epoch, record_loss_D, record_loss_G, time.time() - start_time)
+        logfile.write(training_log + "\n")
+    logfile.write("Total training time: {:.4f}".format(time.time() - all_time) + "\n")
+    logfile.close()
+
+    return training_setup["models"]["model"].copy().to(device)
+
+
 def train_patchcore(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device):
 
     if infer:
@@ -231,6 +316,7 @@ def train_patchcore(save_dir, model_name, dataset_name, infer, run_id, train_dat
     logfile.close()
 
     return training_setup["models"]["model"].copy().to(device)
+
 
 def train_padim(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device):
 

@@ -1,6 +1,8 @@
 from architectures.cycle_GANs_blocks import *
 from anomalib.models.patchcore.torch_model import PatchcoreModel
 from anomalib.models.padim.torch_model import PadimModel
+from anomalib.models.ganomaly.torch_model import GanomalyModel
+from anomalib.models.ganomaly.loss import GeneratorLoss, DiscriminatorLoss
 import itertools
 
 class DecayLR:
@@ -13,6 +15,7 @@ class DecayLR:
 
     def step(self, epoch):
         return 1.0 - max(0, epoch + self.offset - self.decay_epochs) / (self.epochs - self.decay_epochs)
+    
 
 def return_training_setup(model_name, model_config, dataset_config, device):
     """ Return the training setup for the given model """
@@ -20,6 +23,8 @@ def return_training_setup(model_name, model_config, dataset_config, device):
         generator = get_cgan256
     elif model_name == 'cgan64':
         generator =  get_cgan64
+    elif model_name == 'ganomaly':
+        generator =  get_ganomaly
     elif model_name == 'patchcore':
         generator =  get_patchcore
     elif model_name == 'padim':
@@ -28,6 +33,7 @@ def return_training_setup(model_name, model_config, dataset_config, device):
         raise ValueError('Unknown model name: {}'.format(model_name))
     
     return generator(model_config, dataset_config, device)
+
 
 def get_cgan256(model_config, dataset_config, device):
 
@@ -89,6 +95,7 @@ def get_cgan256(model_config, dataset_config, device):
 
     return setup
 
+
 def get_cgan64(model_config, dataset_config, device):
 
     if model_config["always_RGB"] or dataset_config["RGB"]:
@@ -149,6 +156,58 @@ def get_cgan64(model_config, dataset_config, device):
 
     return setup
 
+
+def get_ganomaly(model_config, dataset_config, device):
+
+    if model_config["always_RGB"] or dataset_config["RGB"]:
+        C_in = 3
+    else:
+        C_in = 1
+
+    im_size = min([model_config["max_image_size"], dataset_config["image_size"]])
+
+    # Models
+    model = GanomalyModel(input_size=(im_size, im_size),
+                          num_input_channels=C_in,
+                          n_features=32,
+                          latent_vec_size=128).to(device)
+    
+    # Losses
+    loss_Generator = GeneratorLoss()
+    loss_Discriminator = DiscriminatorLoss()
+
+    # Optimizers
+    optimizer_G = torch.optim.Adam(model.generator.parameters(),
+                                   lr=0.0002, betas=(0.5, 0.999))
+    optimizer_D = torch.optim.Adam(model.discriminator.parameters(),
+                                   lr=0.0002, betas=(0.5, 0.999))
+
+    # Schedulers
+    lr_lambda = DecayLR(dataset_config["epochs"], 0, dataset_config["epochs"]//10).step
+    lr_scheduler_G = torch.optim.lr_scheduler.LambdaLR(optimizer_G, lr_lambda=lr_lambda)
+    lr_scheduler_D = torch.optim.lr_scheduler.LambdaLR(optimizer_D, lr_lambda=lr_lambda)
+
+    setup = {
+        'models': {
+            'model': model
+        },
+        'losses': {
+            'loss_Generator': loss_Generator,
+            'loss_Discriminator': loss_Discriminator
+        },
+        'optimizers': {
+            'optimizer_G': optimizer_G,
+            'optimizer_D': optimizer_D
+        },
+        'schedulers': {
+            'lr_scheduler_G': lr_scheduler_G,
+            'lr_scheduler_D': lr_scheduler_D
+        }
+    }
+
+    return setup
+
+
 def get_patchcore(model_config, dataset_config, device):
 
     im_size = min([model_config["max_image_size"], dataset_config["image_size"]])
@@ -168,6 +227,7 @@ def get_patchcore(model_config, dataset_config, device):
     }
 
     return setup
+
 
 def get_padim(model_config, dataset_config, device):
 

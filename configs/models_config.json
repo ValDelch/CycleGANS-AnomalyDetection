@@ -9,6 +9,11 @@
         "always_RGB": false,
         "max_image_size": 64
     },
+    "ganomaly": {
+        "data_loader": "ImageDataset",
+        "always_RGB": false,
+        "max_image_size": 64
+    },
     "padim": {
         "data_loader": "ImageDataset",
         "always_RGB": true,
