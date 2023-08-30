@@ -4,6 +4,20 @@
         "RGB": true,
         "hard_aug": false,
         "epochs": 50,
-        "batch_size": 48
+        "batch_size": 32
+    },
+    "brain": {
+        "image_size": 256,
+        "RGB": false,
+        "hard_aug": true,
+        "epochs": 200,
+        "batch_size": 32
+    },
+    "breast": {
+        "image_size": 256,
+        "RGB": false,
+        "hard_aug": true,
+        "epochs": 200,
+        "batch_size": 32
     }
 }

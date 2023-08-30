@@ -63,14 +63,11 @@ class ImageDatasetPaired(Dataset):
     def __len__(self):
         return len(self.files)
 
-def return_dataset(name, path, always_RGB, max_image_size, loader, id=0):
-
-    with open('datasets_config.json', 'r') as json_file:
-        dataset_config = json.load(json_file)[name]
+def return_dataset(name, path, model_config, dataset_config, id=0):
 
     """ Setup """
 
-    image_size = min([max_image_size, dataset_config["image_size"]])
+    image_size = min([model_config["max_image_size"], dataset_config["image_size"]])
 
     # Generate the splits
     normal_images = [f for f in os.listdir(os.path.join(path, name, 'normal')) 
@@ -79,14 +76,14 @@ def return_dataset(name, path, always_RGB, max_image_size, loader, id=0):
                        if f.split('.')[-1].lower() in valid_extensions]
     random.Random(id).shuffle(normal_images)
     random.Random(id).shuffle(abnormal_images)
-    test_size = len(abnormal_images) // 2
+    test_size = min([len(normal_images), len(abnormal_images)]) // 2
     
     normal_images_test = normal_images[:test_size]
     abnormal_images_test = abnormal_images[:test_size]
     normal_images_train = normal_images[test_size:]
     abnormal_images_train = abnormal_images[test_size:]
 
-    if loader == 'ImageDatasetPaired':
+    if model_config["data_loader"] == 'ImageDatasetPaired':
         train_dataloader = ImageDatasetPaired
 
         # Generate the training pairs
@@ -115,11 +112,13 @@ def return_dataset(name, path, always_RGB, max_image_size, loader, id=0):
         train_dataloader = ImageDataset
 
         # Generate the training split
-        images_train = normal_images_train.copy()
+        images_train = [os.path.join(path, name, 'normal', x) for x in normal_images_train]
 
     test_dataloader = ImageDataset
+    normal_images_test = [os.path.join(path, name, 'normal', x) for x in normal_images_test]
+    abnormal_images_test = [os.path.join(path, name, 'abnormal', x) for x in abnormal_images_test]
 
-    if always_RGB or dataset_config["RGB"]:
+    if model_config["always_RGB"] or dataset_config["RGB"]:
         color_mode = "RGB"
         normalize = transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
     else:
@@ -281,6 +280,7 @@ def return_dataset(name, path, always_RGB, max_image_size, loader, id=0):
             train_dataset_hflip_rot270,
             train_dataset_vflip
         ])
+        print(len(train_dataset))
         test_normal_dataset = test_dataloader(
             files=normal_images_test,
             transform=transform_ori_test,
