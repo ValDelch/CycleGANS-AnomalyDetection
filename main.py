@@ -35,9 +35,9 @@ parser.add_argument('run_id', type=int, help='id for the run')
 parser.add_argument('--infer', action='store_true', default=False, help='only perform inference by loading weights from save_dir')
 args = parser.parse_args()
 
-with open('models_config.json', 'r') as json_file:
+with open('./configs/models_config.json', 'r') as json_file:
     model_config = json.load(json_file)[args.model]
-with open('datasets_config.json', 'r') as json_file:
+with open('./configs/datasets_config.json', 'r') as json_file:
     dataset_config = json.load(json_file)[args.dataset]
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
