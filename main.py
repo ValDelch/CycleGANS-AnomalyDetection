@@ -117,12 +117,12 @@ for metric in maps_normal.keys():
     auc_score[metric] = auc_roc_score(maps_normal[metric], maps_abnormal[metric])
 
 # Saving the results
-with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'accuracy.json'), 'w'):
+with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'accuracy.json'), 'w') as json_file:
     json.dump(accuracy, json_file, indent=4)
-with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'accuracy_50.json'), 'w'):
+with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'accuracy_50.json'), 'w') as json_file:
     json.dump(accuracy_50, json_file, indent=4)
-with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'auc_score.json'), 'w'):
+with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'auc_score.json'), 'w') as json_file:
     json.dump(auc_score, json_file, indent=4)
-with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'max_accuracy_threshold.json'), 'w'):
+with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'max_accuracy_threshold.json'), 'w') as json_file:
     json.dump(max_accuracy_threshold, json_file, indent=4)
 print('\n>> Results saved\n')
