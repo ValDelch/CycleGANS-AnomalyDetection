@@ -1,5 +1,6 @@
 from metrics import InceptionV3, calculate_fretchet
 import torch
+import numpy as np
 
 def infer(model_name, model, normal_dataloader, abnormal_dataloader, device):
 
@@ -61,7 +62,7 @@ def get_maps_cgan(model, data, inception, device):
                                   fake[j][None,:,:,:], 
                                   inception, 
                                   cuda=use_cuda)
-        fid.append(round(torch.sum(_fid).item(),2))
+        fid.append(round(np.sum(_fid),2))
 
     return {'sse': sse, 'fid': fid}
 
@@ -83,7 +84,7 @@ def get_maps_ganomaly(model, data, inception, device):
                                   fake[j][None,:,:,:], 
                                   inception, 
                                   cuda=use_cuda)
-        fid.append(round(torch.sum(_fid).item(),2))
+        fid.append(round(np.sum(_fid),2))
 
     return {'sse': sse, 'fid': fid}
 

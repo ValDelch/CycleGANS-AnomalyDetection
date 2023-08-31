@@ -52,12 +52,14 @@ data = return_dataset(args.dataset,
                       model_config, 
                       dataset_config, 
                       args.run_id)
+print('\n>> Dataset loaded\n')
 
 """ Instantiate the model """
 training_setup = return_training_setup(args.model, 
                                        model_config,
                                        dataset_config,
                                        device)
+print('\n>> Model loaded\n')
 
 """ Call the training loop """
 model = return_trained_model(args.save_dir, 
@@ -70,6 +72,7 @@ model = return_trained_model(args.save_dir,
                              model_config,
                              dataset_config, 
                              device)
+print('\n>> Model trained\n')
 
 """ Call the inference loop """
 maps_normal, maps_abnormal = infer(args.model, 
@@ -77,6 +80,7 @@ maps_normal, maps_abnormal = infer(args.model,
                                    data[1], 
                                    data[2], 
                                    device)
+print('\n>> Inference performed\n')
 
 # Save the maps
 with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'maps_normal.json'), 'w') as json_file:
@@ -121,3 +125,4 @@ with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id)
     json.dump(auc_score, json_file, indent=4)
 with open(os.path.join(args.save_dir, args.dataset, args.model, str(args.run_id), 'max_accuracy_threshold.json'), 'w'):
     json.dump(max_accuracy_threshold, json_file, indent=4)
+print('\n>> Results saved\n')

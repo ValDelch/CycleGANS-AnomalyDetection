@@ -163,21 +163,21 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
 
             if i == 0:
                 vutils.save_image(real_image_normal,
-                                normal_folder + f"epoch_{epoch}_real_samples.png",
-                                normalize=True)
+                                  os.path.join(normal_folder, f"{epoch}_real_samples.png"),
+                                  normalize=True)
                 vutils.save_image(real_image_abnormal,
-                                abnormal_folder + f"epoch_{epoch}_real_samples.png",
-                                normalize=True)
+                                  os.path.join(abnormal_folder, f"{epoch}_real_samples.png"),
+                                  normalize=True)
 
                 fake_image_A = 0.5 * (training_setup["models"]["netG_abnormal2normal"](real_image_abnormal).data + 1.0)
                 fake_image_B = 0.5 * (training_setup["models"]["netG_normal2abnormal"](real_image_normal).data + 1.0)
 
                 vutils.save_image(fake_image_B.detach(),
-                                normal_folder + f"epoch_{epoch}_fake_samples.png",
-                                normalize=True)
+                                  os.path.join(normal_folder, f"{epoch}_fake_samples.png"),
+                                  normalize=True)
                 vutils.save_image(fake_image_A.detach(),
-                                abnormal_folder + f"epoch_{epoch}_fake_samples.png",
-                                normalize=True)
+                                  os.path.join(abnormal_folder, f"{epoch}_fake_samples.png"),
+                                  normalize=True)
                     
             # Calculate gradients for D_B
             errD_abnormal.backward()
@@ -201,7 +201,7 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
     logfile.write("Total training time: {:.4f}".format(time.time() - all_time) + "\n")
     logfile.close()
 
-    return training_setup["models"]["netG_abnormal2normal"].copy().to(device)
+    return training_setup["models"]["netG_abnormal2normal"].to(device)
 
 
 def train_ganomaly(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device):

@@ -280,7 +280,6 @@ def return_dataset(name, path, model_config, dataset_config, id=0):
             train_dataset_hflip_rot270,
             train_dataset_vflip
         ])
-        print(len(train_dataset))
         test_normal_dataset = test_dataloader(
             files=normal_images_test,
             transform=transform_ori_test,
