@@ -92,7 +92,6 @@ def get_maps_ganomaly(model, data, inception, device):
 
 def get_maps_patchcore(model, data, inception, device):
 
-    model.train()
     _sse, _ = model(data)
     sse = []
     for _ in range(data.shape[0]):
@@ -103,7 +102,6 @@ def get_maps_patchcore(model, data, inception, device):
 
 def get_maps_padim(model, data, inception, device):
     
-    model.train()
     _sse = model(data)
     sse = []
     for _ in range(data.shape[0]):
