@@ -38,7 +38,7 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
     if not os.path.exists(abnormal_folder):
         os.makedirs(abnormal_folder)
 
-    logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a")
+    logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a", buffering=1)
 
     fake_normal_buffer = ReplayBuffer()
     fake_abnormal_buffer = ReplayBuffer()
@@ -227,7 +227,7 @@ def train_ganomaly(save_dir, model_name, dataset_name, infer, run_id, train_data
     if not os.path.exists(abnormal_folder):
         os.makedirs(abnormal_folder)
 
-    logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a")
+    logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a", buffering=1)
 
     all_time = time.time()
     training_setup["models"]["model"].train()
@@ -307,7 +307,7 @@ def train_patchcore(save_dir, model_name, dataset_name, infer, run_id, train_dat
     if not os.path.exists(abnormal_folder):
         os.makedirs(abnormal_folder)
 
-    logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a")
+    logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a", buffering=1)
 
     embeddings = []
     training_setup["models"]["model"].train()
@@ -345,7 +345,7 @@ def train_padim(save_dir, model_name, dataset_name, infer, run_id, train_dataloa
     if not os.path.exists(abnormal_folder):
         os.makedirs(abnormal_folder)
 
-    logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a")
+    logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a", buffering=1)
 
     embeddings = []
     training_setup["models"]["model"].train()
