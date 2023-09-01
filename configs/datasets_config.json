@@ -3,21 +3,56 @@
         "image_size": 96,
         "RGB": true,
         "hard_aug": false,
-        "epochs": 1,
-        "batch_size": 32
+        "epochs": 30,
+        "batch_size": 16
     },
     "brain": {
         "image_size": 256,
         "RGB": false,
         "hard_aug": true,
-        "epochs": 2,
-        "batch_size": 32
+        "epochs": 200,
+        "batch_size": 16
     },
     "breast": {
         "image_size": 256,
         "RGB": false,
         "hard_aug": true,
-        "epochs": 2,
-        "batch_size": 32
+        "epochs": 200,
+        "batch_size": 16
+    },
+    "oct": {
+        "image_size": 256,
+        "RGB": false,
+        "hard_aug": false,
+        "epochs": 30,
+        "batch_size": 16
+    },
+    "screw": {
+        "image_size": 256,
+        "RGB": true,
+        "hard_aug": true,
+        "epochs": 200,
+        "batch_size": 16
+    },
+    "wood": {
+        "image_size": 256,
+        "RGB": true,
+        "hard_aug": true,
+        "epochs": 200,
+        "batch_size": 16
+    },
+    "tile": {
+        "image_size": 256,
+        "RGB": true,
+        "hard_aug": true,
+        "epochs": 200,
+        "batch_size": 16
+    },
+    "hazelnut": {
+        "image_size": 256,
+        "RGB": true,
+        "hard_aug": true,
+        "epochs": 200,
+        "batch_size": 16
     }
 }
