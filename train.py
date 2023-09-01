@@ -3,6 +3,7 @@ import torchvision.utils as vutils
 import os
 from architectures.cycle_GANs_blocks import ReplayBuffer
 from tqdm import tqdm
+import psutil
 import time
 
 def return_trained_model(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device):
@@ -196,7 +197,14 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
         training_setup["schedulers"]["lr_scheduler_D_normal"].step()
         training_setup["schedulers"]["lr_scheduler_D_abnormal"].step()
 
-        training_log = "Epoch: {} | Loss_D: {:.4f} | Loss_identity: {:.4f} | Loss_GAN: {:.4f} | Loss_cycle: {:.4f} | Time: {:.4f}".format(epoch, record_loss_D, record_loss_identity, record_loss_GAN, record_loss_cycle, time.time() - start_time)
+        training_log = "Epoch: {} | Loss_D: {:.4f} | Loss_identity: {:.4f} | Loss_GAN: {:.4f} | Loss_cycle: {:.4f} | Time: {:.4f} | RAM (GB): {:.3f} | VRAM (GB): {:.3f}".format(epoch, 
+                                                                                                                                                             record_loss_D, 
+                                                                                                                                                             record_loss_identity, 
+                                                                                                                                                             record_loss_GAN, 
+                                                                                                                                                             record_loss_cycle, 
+                                                                                                                                                             time.time() - start_time, 
+                                                                                                                                                             psutil.virtual_memory()[3]/1024/1024/1024, 
+                                                                                                                                                             torch.cuda.memory_allocated(device)/1024/1024/1024)
         logfile.write(training_log + "\n")
     logfile.write("Total training time: {:.4f}".format(time.time() - all_time) + "\n")
     logfile.close()
@@ -273,12 +281,17 @@ def train_ganomaly(save_dir, model_name, dataset_name, infer, run_id, train_data
         training_setup["schedulers"]["lr_scheduler_G"].step()
         training_setup["schedulers"]["lr_scheduler_D"].step()
 
-        training_log = "Epoch: {} | Loss_D: {:.4f} | Loss_G: {:.4f} | Time: {:.4f}".format(epoch, record_loss_D, record_loss_G, time.time() - start_time)
+        training_log = "Epoch: {} | Loss_D: {:.4f} | Loss_G: {:.4f} | Time: {:.4f} | RAM (GB): {:.3f} | VRAM (GB): {:.3f}".format(epoch, 
+                                                                                                                                  record_loss_D, 
+                                                                                                                                  record_loss_G, 
+                                                                                                                                  time.time() - start_time, 
+                                                                                                                                  psutil.virtual_memory()[3]/1024/1024/1024, 
+                                                                                                                                  torch.cuda.memory_allocated(device)/1024/1024/1024)
         logfile.write(training_log + "\n")
     logfile.write("Total training time: {:.4f}".format(time.time() - all_time) + "\n")
     logfile.close()
 
-    return training_setup["models"]["model"].copy().to(device)
+    return training_setup["models"]["model"].to(device)
 
 
 def train_patchcore(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device):
@@ -297,6 +310,7 @@ def train_patchcore(save_dir, model_name, dataset_name, infer, run_id, train_dat
     logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a")
 
     embeddings = []
+    training_setup["models"]["model"].train()
     training_setup["models"]["model"].feature_extractor.eval()
     n = 0
     all_time = time.time()
@@ -315,7 +329,7 @@ def train_patchcore(save_dir, model_name, dataset_name, infer, run_id, train_dat
     logfile.write("Total training time: {:.4f}".format(time.time() - all_time) + "\n")
     logfile.close()
 
-    return training_setup["models"]["model"].copy().to(device)
+    return training_setup["models"]["model"].to(device)
 
 
 def train_padim(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device):
@@ -334,6 +348,7 @@ def train_padim(save_dir, model_name, dataset_name, infer, run_id, train_dataloa
     logfile = open(os.path.join(save_dir, dataset_name, model_name, str(run_id), "training_logs.txt"), "a")
 
     embeddings = []
+    training_setup["models"]["model"].train()
     training_setup["models"]["model"].feature_extractor.eval()
     n = 0
     all_time = time.time()
@@ -352,4 +367,4 @@ def train_padim(save_dir, model_name, dataset_name, infer, run_id, train_dataloa
     logfile.write("Total training time: {:.4f}".format(time.time() - all_time) + "\n")
     logfile.close()
 
-    return training_setup["models"]["model"].copy().to(device)
+    return training_setup["models"]["model"].to(device)

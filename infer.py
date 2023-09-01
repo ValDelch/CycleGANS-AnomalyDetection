@@ -74,6 +74,7 @@ def get_maps_ganomaly(model, data, inception, device):
     else:
         use_cuda = False
 
+    model.train()
     real, fake, _, _ = model(data)
     sse = []
     fid = []
