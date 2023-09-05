@@ -26,7 +26,7 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
 
     if infer:
         # Load the trained model(s)
-        model = training_setup['models']['netG_abnormal2normal'].copy()
+        model = training_setup['models']['netG_abnormal2normal']
         model.load_state_dict(torch.load(os.path.join(save_dir, dataset_name, model_name, str(run_id), "/netG_abnormal2normal.pth")))
         return model.to(device)
     
@@ -215,7 +215,7 @@ def train_cgan(save_dir, model_name, dataset_name, infer, run_id, train_dataload
 def train_ganomaly(save_dir, model_name, dataset_name, infer, run_id, train_dataloader, training_setup, model_config, dataset_config, device):
 
     if infer:
-        model = training_setup['models']['model'].copy()
+        model = training_setup['models']['model']
         model.load_state_dict(torch.load(os.path.join(save_dir, dataset_name, model_name, str(run_id), "/ganomaly.pth")))
         return model.to(device)
 
