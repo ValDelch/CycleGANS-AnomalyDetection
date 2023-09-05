@@ -94,11 +94,12 @@ fp,tp,fn,tn = {},{},{},{}
 fp_50,tp_50,fn_50,tn_50 = {},{},{},{}
 accuracy,precision,specificity,specificity,fpr,fnr = {},{},{},{},{},{}
 accuracy_50,precision_50,specificity_50,specificity_50,fpr_50,fnr_50,auc_score = {},{},{},{},{},{},{}
-accuracy_scores = dict.fromkeys(maps_normal.keys(), [])
+accuracy_scores = {}#dict.fromkeys(maps_normal.keys(), [])
 data =  {}
 accuracies, max_accuracy, max_accuracy_threshold =  {},{},{}
 
 for metric in maps_normal.keys():
+    accuracy_scores[metric] = []
     fp[metric],tp[metric],fn[metric],tn[metric] = conf_mat(maps_normal[metric], maps_abnormal[metric], min(maps_abnormal[metric]))
     accuracy[metric],precision[metric],specificity[metric],specificity[metric],fpr[metric],fnr[metric] = metric_conf(fp[metric],tp[metric],fn[metric],tn[metric])
 
