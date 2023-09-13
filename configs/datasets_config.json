@@ -4,7 +4,7 @@
         "RGB": true,
         "hard_aug": false,
         "all_trans": true,
-        "epochs": 30,
+        "epochs": 50,
         "batch_size": 16
     },
     "brain": {
@@ -28,7 +28,7 @@
         "RGB": false,
         "hard_aug": false,
         "all_trans": false,
-        "epochs": 30,
+        "epochs": 50,
         "batch_size": 16
     },
     "screw": {
