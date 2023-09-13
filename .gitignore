@@ -4,3 +4,4 @@ __pycache__/
 .ipynb_checkpoints/
 tests_outputs/
 results_bn/
+results_in/

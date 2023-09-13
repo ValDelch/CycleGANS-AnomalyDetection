@@ -126,19 +126,27 @@ def return_dataset(name, path, model_config, dataset_config, id=0):
         normalize = transforms.Normalize([0.5], [0.5])
 
     if not dataset_config["hard_aug"]:
-        train_tf = transforms.Compose([
-            transforms.Resize((image_size, image_size), Image.Resampling.BICUBIC),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.RandomChoice([
-                transforms.RandomRotation((90,90)),
-                transforms.RandomRotation((180,180)),
-                transforms.RandomRotation((270,270)),
-                transforms.RandomRotation((0,0))
-            ]),
-            transforms.ToTensor(),
-            normalize
-        ])
+        if dataset_config["all_trans"]:
+            train_tf = transforms.Compose([
+                transforms.Resize((image_size, image_size), Image.Resampling.BICUBIC),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                transforms.RandomChoice([
+                    transforms.RandomRotation((90,90)),
+                    transforms.RandomRotation((180,180)),
+                    transforms.RandomRotation((270,270)),
+                    transforms.RandomRotation((0,0))
+                ]),
+                transforms.ToTensor(),
+                normalize
+            ])
+        else:
+            train_tf = transforms.Compose([
+                transforms.Resize((image_size, image_size), Image.Resampling.BICUBIC),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize
+            ])
         test_tf = transforms.Compose([
             transforms.Resize((image_size, image_size), Image.Resampling.BICUBIC),
             transforms.ToTensor(),

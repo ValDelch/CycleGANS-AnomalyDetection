@@ -3,6 +3,7 @@
         "image_size": 96,
         "RGB": true,
         "hard_aug": false,
+        "all_trans": true,
         "epochs": 30,
         "batch_size": 16
     },
@@ -10,6 +11,7 @@
         "image_size": 256,
         "RGB": false,
         "hard_aug": true,
+        "all_trans": true,
         "epochs": 200,
         "batch_size": 16
     },
@@ -17,6 +19,7 @@
         "image_size": 256,
         "RGB": false,
         "hard_aug": true,
+        "all_trans": true,
         "epochs": 200,
         "batch_size": 16
     },
@@ -24,6 +27,7 @@
         "image_size": 256,
         "RGB": false,
         "hard_aug": false,
+        "all_trans": false,
         "epochs": 30,
         "batch_size": 16
     },
@@ -31,6 +35,7 @@
         "image_size": 256,
         "RGB": true,
         "hard_aug": true,
+        "all_trans": true,
         "epochs": 200,
         "batch_size": 16
     },
@@ -38,6 +43,7 @@
         "image_size": 256,
         "RGB": true,
         "hard_aug": true,
+        "all_trans": true,
         "epochs": 200,
         "batch_size": 16
     },
@@ -45,6 +51,7 @@
         "image_size": 256,
         "RGB": true,
         "hard_aug": true,
+        "all_trans": true,
         "epochs": 200,
         "batch_size": 16
     },
@@ -52,6 +59,7 @@
         "image_size": 256,
         "RGB": true,
         "hard_aug": true,
+        "all_trans": true,
         "epochs": 200,
         "batch_size": 16
     }
