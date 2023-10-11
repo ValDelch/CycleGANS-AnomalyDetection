@@ -1,6 +1,5 @@
 import os
 import shutil
-import uuid
 
 try:
     os.mkdir('./cgan_ready')
