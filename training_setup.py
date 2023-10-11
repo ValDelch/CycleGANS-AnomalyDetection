@@ -43,9 +43,14 @@ def get_cgan256(model_config, dataset_config, device):
         C_in = 1
 
     # Models
-    netG_normal2abnormal = ResnetGenerator(C_in=C_in, C_out=C_in, n_blocks=9, norm_layer=nn.InstanceNorm2d).to(device)
+    if dataset_config['image_size'] < 128:
+        n_blocks = 6
+    else:
+        n_blocks = 9
+
+    netG_normal2abnormal = ResnetGenerator(C_in=C_in, C_out=C_in, n_blocks=n_blocks, norm_layer=nn.InstanceNorm2d).to(device)
     netG_normal2abnormal.apply(weights_init)
-    netG_abnormal2normal = ResnetGenerator(C_in=C_in, C_out=C_in, n_blocks=9, norm_layer=nn.InstanceNorm2d).to(device)
+    netG_abnormal2normal = ResnetGenerator(C_in=C_in, C_out=C_in, n_blocks=n_blocks, norm_layer=nn.InstanceNorm2d).to(device)
     netG_abnormal2normal.apply(weights_init)
     netD_normal = NLayerDiscriminator(C_in=C_in, n_layers=3, norm_layer=nn.InstanceNorm2d).to(device)
     netD_normal.apply(weights_init)
@@ -104,13 +109,13 @@ def get_cgan64(model_config, dataset_config, device):
         C_in = 1
 
     # Models
-    netG_normal2abnormal = ResnetGenerator(C_in=C_in, C_out=C_in, n_blocks=6, norm_layer=nn.BatchNorm2d).to(device)
+    netG_normal2abnormal = ResnetGenerator(C_in=C_in, C_out=C_in, n_blocks=6, norm_layer=nn.InstanceNorm2d).to(device)
     netG_normal2abnormal.apply(weights_init)
-    netG_abnormal2normal = ResnetGenerator(C_in=C_in, C_out=C_in, n_blocks=6, norm_layer=nn.BatchNorm2d).to(device)
+    netG_abnormal2normal = ResnetGenerator(C_in=C_in, C_out=C_in, n_blocks=6, norm_layer=nn.InstanceNorm2d).to(device)
     netG_abnormal2normal.apply(weights_init)
-    netD_normal = NLayerDiscriminator(C_in=C_in, n_layers=3, norm_layer=nn.BatchNorm2d).to(device)
+    netD_normal = NLayerDiscriminator(C_in=C_in, n_layers=3, norm_layer=nn.InstanceNorm2d).to(device)
     netD_normal.apply(weights_init)
-    netD_abnormal = NLayerDiscriminator(C_in=C_in, n_layers=3, norm_layer=nn.BatchNorm2d).to(device)
+    netD_abnormal = NLayerDiscriminator(C_in=C_in, n_layers=3, norm_layer=nn.InstanceNorm2d).to(device)
     netD_abnormal.apply(weights_init)
 
     # Losses

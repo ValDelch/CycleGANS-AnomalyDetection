@@ -7,6 +7,14 @@
         "epochs": 50,
         "batch_size": 16
     },
+    "malaria": {
+        "image_size": 256,
+        "RGB": true,
+        "hard_aug": false,
+        "all_trans": true,
+        "epochs": 50,
+        "batch_size": 16
+    },
     "brain": {
         "image_size": 256,
         "RGB": false,

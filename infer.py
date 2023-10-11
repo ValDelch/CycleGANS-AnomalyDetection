@@ -53,6 +53,7 @@ def get_maps_cgan(model, data, inception, device):
         use_cuda = False
 
     fake = model(data)
+
     sse = []
     fid = []
     for j in range(data.shape[0]):
